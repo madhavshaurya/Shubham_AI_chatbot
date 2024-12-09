@@ -7,9 +7,7 @@ import google.generativeai as genai
 load_dotenv()
 
 # Configure the API key
-API_KEY = os.getenv("GEMINI_API_KEY", "your_api_key_here")  # Replace 'your_api_key_here' for testing
-if API_KEY == "your_api_key_here":
-    st.warning("⚠️ Please replace 'your_api_key_here' with your actual API key for testing.")
+API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
 # Define the model and chat session
