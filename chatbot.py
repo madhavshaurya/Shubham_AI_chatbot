@@ -65,6 +65,31 @@ Nomenclature/Abbreviations:
 P-Pass, F- Fail, A-Absent, W-Withheld, X,NE- Not Eligible
 
 
+I belong from Bihar. 
+
+I have completed my 10th and 12th from Delhi Public School, Patna.
+
+My 10th Marks were as follows:- Physics-60
+English-90
+Maths-70
+Biology-60
+PE-60
+My 12th Marks were:-
+Maths-80
+Physics-50
+Chemistry-40
+
+My Hobbies are playing Chess, Walking, Reading Books etc.
+
+I currently do not have any technical skill which is of any use, Though I’m currently learning something which I don’t want to disclose.
+
+My Father’s Name is Krishna Kumar Gupta.
+My Mother’s Name is Rina Gupta.
+
+Sgpa of 2nd semester is 7.1 
+Sgpa of 4th semester is 7.5
+
+
     """
 )
 
