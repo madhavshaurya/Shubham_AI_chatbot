@@ -1,16 +1,31 @@
-from dotenv import load_dotenv
 import streamlit as st
+from dotenv import load_dotenv
 import os
 import google.generativeai as genai
+import requests
+
+# Set Streamlit page configuration (MUST be the first Streamlit command)
+st.set_page_config(
+    page_title="Shubham's Personal Chatbot 🤖",
+    page_icon="🤖",
+    layout="wide"
+)
 
 # Load environment variables
 load_dotenv()
 
-# Configure the API key
-API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=API_KEY)
+# Configure the API keys
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "your_gemini_api_key_here")
+UNSPLASH_API_KEY = os.getenv("UNSPLASH_API_KEY", "your_unspash_api_key_here")
 
-# Define the model and chat session
+if GEMINI_API_KEY == "your_gemini_api_key_here":
+    st.warning("⚠️ Please replace 'your_gemini_api_key_here' with your actual Gemini API key.")
+if UNSPLASH_API_KEY == "your_unspash_api_key_here":
+    st.warning("⚠️ Please replace 'your_gemini_api_key_here' with your actual Gemini API key.")
+
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Define the Gemini model and chat session
 generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -63,8 +78,6 @@ BESCK204B, Introduction to electrical Engineering, 21,27,48,P,2023-10-27
 Nomenclature/Abbreviations:
 
 P-Pass, F- Fail, A-Absent, W-Withheld, X,NE- Not Eligible
-
-
 I belong from Bihar. 
 
 I have completed my 10th and 12th from Delhi Public School, Patna.
@@ -89,21 +102,32 @@ My Mother’s Name is Rina Gupta.
 Sgpa of 2nd semester is 7.1 
 Sgpa of 4th semester is 7.5
 
-
     """
 )
 
 # Initialize the chat session
 chat_session = model.start_chat(history=[])
 
-# Set Streamlit page configuration
-st.set_page_config(
-    page_title="Shubham's Personal Chatbot 🤖",
-    page_icon="🤖",
-    layout="centered"
-)
+# Chat history state
+if "chat_history" not in st.session_state:
+    st.session_state["chat_history"] = []
 
-# Streamlit Interface
+# Sidebar for chat history
+st.sidebar.title("📜 Chat History")
+if st.session_state["chat_history"]:
+    for i, entry in enumerate(st.session_state["chat_history"]):
+        with st.sidebar.expander(f"Chat {i+1}"):
+            st.write(f"**User:** {entry['user']}")
+            st.write(f"**SAI:** {entry['ai']}")
+else:
+    st.sidebar.info("No chat history available yet.")
+
+# Clear chat history button
+if st.sidebar.button("Clear Chat History"):
+    st.session_state["chat_history"] = []
+    st.sidebar.info("Chat history cleared.")
+
+# Main content
 st.markdown(
     """
     <style>
@@ -131,13 +155,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Header
 st.markdown('<h1 class="main-title">Shubham\'s Personal Chatbot 🤖</h1>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Ask me anything, and I\'ll assist you to the best of my ability!</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Ask me anything, or search for images!</p>', unsafe_allow_html=True)
 
 # Input from the user
-st.markdown("### 💬 Enter your question below:")
-user_input = st.text_input("Type your question:", "")
+st.markdown("### 💬 Enter your question or image keyword below:")
+user_input = st.text_input("Type your question or keyword:", "")
 
 # Chat session and response display
 if st.button("Send"):
@@ -145,6 +168,7 @@ if st.button("Send"):
         with st.spinner("🤔 SAI is thinking..."):
             try:
                 response = chat_session.send_message(user_input)
+                st.session_state["chat_history"].append({"user": user_input, "ai": response.text})
                 st.markdown("### 🤖 Response:")
                 st.markdown(
                     f'<div class="response-box">{response.text}</div>',
@@ -155,12 +179,42 @@ if st.button("Send"):
     else:
         st.error("⚠️ Please enter a valid question!")
 
+# Unsplash image search
+if st.button("Search Image"):
+    if user_input.strip():
+        with st.spinner("🔍 Searching Unsplash..."):
+            try:
+                # Unsplash API call
+                url = f"https://api.unsplash.com/search/photos"
+                params = {
+                    "query": user_input,
+                    "client_id": UNSPLASH_API_KEY,
+                    "per_page": 2,  # Fetch only 2 images
+                }
+                response = requests.get(url, params=params)
+                if response.status_code == 200:
+                    data = response.json()
+                    images = data.get("results", [])
+                    if images:
+                        st.markdown("### 🖼️ Images:")
+                        for img in images:
+                            img_url = img["urls"]["small"]
+                            st.image(img_url, use_column_width=True, caption=img.get("alt_description", "Image"))
+                    else:
+                        st.error("❌ No images found for your search.")
+                else:
+                    st.error(f"❌ Failed to fetch images. Error: {response.status_code}")
+            except Exception as e:
+                st.error(f"❌ An error occurred: {e}")
+    else:
+        st.error("⚠️ Please enter a valid keyword!")
+
 # Footer
 st.markdown("---")
 st.markdown(
     """
     <div style="text-align: center; font-size: 0.9em; color: #7D7D7D;">
-        Created with ❤️ by Shubham Kumar | Powered by Gemini AI
+        Created with ❤️ by Shubham Kumar | Powered by Gemini AI & Unsplash
     </div>
     """,
     unsafe_allow_html=True,
